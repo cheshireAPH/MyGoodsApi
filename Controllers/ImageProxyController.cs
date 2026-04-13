@@ -9,20 +9,32 @@ namespace MyGoodsApi.Controllers
         [HttpPost]
         public async Task<IActionResult> FetchImage([FromBody] UrlRequest req)
         {
-            if (string.IsNullOrEmpty(req.Url))
-                return BadRequest("Missing url");
+            if (req.Urls == null || req.Urls.Length == 0)
+                return BadRequest("Missing urls");
 
             using var client = new HttpClient();
             client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0");
 
-            var bytes = await client.GetByteArrayAsync(req.Url);
+            foreach (var url in req.Urls)
+            {
+                try
+                {
+                    var bytes = await client.GetByteArrayAsync(url);
+                    if (bytes?.Length > 0)
+                        return File(bytes, "image/jpeg");
+                }
+                catch
+                {
+                    // 次の URL を試す
+                }
+            }
 
-            return File(bytes, "image/jpeg");
+            return BadRequest("No valid image found");
         }
     }
 
     public class UrlRequest
     {
-        public string Url { get; set; }
+        public string[] Urls { get; set; }
     }
 }
