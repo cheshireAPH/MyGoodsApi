@@ -92,9 +92,6 @@ namespace MyGoodsApi.Controllers
             return code;
         }
 
-        // ------------------------------
-        // Anihapi（HTML → 画像URL抽出）
-        // ------------------------------
         /// <summary>アニハピ（NEO GATE通販）画像取得</summary>
         /// <param name="url"></param>
         /// <returns></returns>
@@ -102,25 +99,26 @@ namespace MyGoodsApi.Controllers
         {
             var html = await _client.GetStringAsync(url);
 
+            // BASE の商品画像パターンを直接拾う
             var match = Regex.Match(
                 html,
-                "<img[^>]*class=\"item-main-image\"[^>]*src=\"([^\"]+)\"",
+                "https://baseec-img-mng\\.akamaized\\.net/images/item/origin/[^\"]+",
                 RegexOptions.IgnoreCase
             );
 
             if (!match.Success)
                 return BadRequest("Anihapi image not found");
 
-            var imgUrl = match.Groups[1].Value;
+            var imgUrl = match.Value;
 
             var bytes = await _client.GetByteArrayAsync(imgUrl);
 
             return File(bytes, "image/jpeg");
         }
-    }
 
-    public class UrlRequest
-    {
-        public string Url { get; set; }
+        public class UrlRequest
+        {
+            public string Url { get; set; }
+        }
     }
 }
