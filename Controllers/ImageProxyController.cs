@@ -24,6 +24,20 @@ namespace MyGoodsApi.Controllers
 
             var url = req.Url;
 
+            // 画像URLならそのまま返す
+            if (IsDirectImageUrl(url))
+            {
+                try
+                {
+                    var bytes = await _client.GetByteArrayAsync(url);
+                    return File(bytes, "image/jpeg");
+                }
+                catch
+                {
+                    return BadRequest("Failed to fetch direct image");
+                }
+            }
+
             // ------------------------------
             // サイト判定
             // ------------------------------
@@ -40,6 +54,19 @@ namespace MyGoodsApi.Controllers
             // if (url.Contains("suruga-ya.jp")) return await FetchSurugaya(url);
 
             return BadRequest("Unsupported site");
+        }
+
+        /// <summary>画像URL判定</summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        private bool IsDirectImageUrl(string url)
+        {
+            var lower = url.ToLower();
+            return lower.EndsWith(".jpg") ||
+                   lower.EndsWith(".jpeg") ||
+                   lower.EndsWith(".png") ||
+                   lower.EndsWith(".webp") ||
+                   lower.EndsWith(".gif");
         }
 
         /// <summary>ムービック画像取得</summary>
