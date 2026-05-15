@@ -25,12 +25,12 @@ namespace MyGoodsApi.Controllers
             var url = req.Url;
 
             // 画像URLならそのまま返す
-            if (IsDirectImageUrl(url))
+            if (TryGetImageMime(url, out var mime))
             {
                 try
                 {
                     var bytes = await _client.GetByteArrayAsync(url);
-                    return File(bytes, "image/jpeg");
+                    return File(bytes, mime);
                 }
                 catch
                 {
@@ -59,14 +59,37 @@ namespace MyGoodsApi.Controllers
         /// <summary>画像URL判定</summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        private bool IsDirectImageUrl(string url)
+        private bool TryGetImageMime(string url, out string mime)
         {
+            mime = "image/jpeg"; // デフォルト
+
+            if (string.IsNullOrWhiteSpace(url))
+                return false;
+
             var lower = url.ToLower();
-            return lower.EndsWith(".jpg") ||
-                   lower.EndsWith(".jpeg") ||
-                   lower.EndsWith(".png") ||
-                   lower.EndsWith(".webp") ||
-                   lower.EndsWith(".gif");
+
+            if (lower.EndsWith(".png"))
+            {
+                mime = "image/png";
+                return true;
+            }
+            if (lower.EndsWith(".webp"))
+            {
+                mime = "image/webp";
+                return true;
+            }
+            if (lower.EndsWith(".gif"))
+            {
+                mime = "image/gif";
+                return true;
+            }
+            if (lower.EndsWith(".jpg") || lower.EndsWith(".jpeg"))
+            {
+                mime = "image/jpeg";
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>ムービック画像取得</summary>
