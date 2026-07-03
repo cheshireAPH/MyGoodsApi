@@ -49,6 +49,10 @@ namespace MyGoodsApi.Controllers
             if (url.Contains("anihapi-online.com"))
                 return await FetchAnihapi(url);
 
+            // eeo Store
+            if (url.Contains("eeo.store") || url.Contains("eeo.jp"))
+                return await FetchEeo(url);
+
             // 今後サイトが増えたらここに追加するだけ
             // if (url.Contains("animate-onlineshop.jp")) return await FetchAnimate(url);
             // if (url.Contains("suruga-ya.jp")) return await FetchSurugaya(url);
@@ -164,6 +168,36 @@ namespace MyGoodsApi.Controllers
             var bytes = await _client.GetByteArrayAsync(imgUrl);
 
             return File(bytes, "image/jpeg");
+        }
+
+        /// <summary>eeo Store 画像取得</summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        private async Task<IActionResult> FetchEeo(string url)
+        {
+            var html = await _client.GetStringAsync(url);
+
+            // eeo の商品画像パターン（BASE 系）
+            var match = Regex.Match(
+                html,
+                "https://img\\.eeo\\.jp/[^\"]+",
+                RegexOptions.IgnoreCase
+            );
+
+            if (!match.Success)
+                return BadRequest("Eeo image not found");
+
+            var imgUrl = match.Value;
+
+            try
+            {
+                var bytes = await _client.GetByteArrayAsync(imgUrl);
+                return File(bytes, "image/jpeg");
+            }
+            catch
+            {
+                return BadRequest("Failed to fetch eeo image");
+            }
         }
 
         public class UrlRequest
