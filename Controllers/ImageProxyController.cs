@@ -50,7 +50,7 @@ namespace MyGoodsApi.Controllers
                 return await FetchAnihapi(url);
 
             // eeo Store
-            if (url.Contains("eeo.store") || url.Contains("eeo.jp"))
+            if (url.Contains("eeo.today"))
                 return await FetchEeo(url);
 
             // 今後サイトが増えたらここに追加するだけ
@@ -177,10 +177,10 @@ namespace MyGoodsApi.Controllers
         {
             var html = await _client.GetStringAsync(url);
 
-            // eeo の商品画像パターン（BASE 系）
+            // eeo の商品画像パターン
             var match = Regex.Match(
                 html,
-                "https://img\\.eeo\\.jp/[^\"]+",
+                "https://eeo\\.today/store/\\d+/html/upload/save_image/[^\"]+",
                 RegexOptions.IgnoreCase
             );
 
@@ -192,7 +192,7 @@ namespace MyGoodsApi.Controllers
             try
             {
                 var bytes = await _client.GetByteArrayAsync(imgUrl);
-                return File(bytes, "image/jpeg");
+                return File(bytes, "image/webp");
             }
             catch
             {
